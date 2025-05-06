@@ -35,6 +35,51 @@ class AuthExternalHooks extends BaseHooks
 
     /* Private Methods *********************************************************/
 
+        /**
+     * Redirect to smx-auth-backend for authentication
+     * 
+     * @param string $authBackendUrl The base URL of the smx-auth-backend service
+     * @param string $redirectUrl URL in your app where the user should return after authentication
+     * @param string $callbackUrl Optional URL that will receive user data via POST
+     * @param bool $forceLogout Force user to log out and log in again
+     * @return string The URL to redirect to
+     */
+    function redirectToAuth(
+        string $authBackendUrl, 
+        string $redirectUrl, 
+        string $callbackUrl = null, 
+        bool $forceLogout = false
+    ): string {
+        $signinUrl = $authBackendUrl . '/signin';
+        
+        $queryParams = [
+            'redirectUrl' => $redirectUrl
+        ];
+        
+        if ($callbackUrl) {
+            $queryParams['callbackUrl'] = $callbackUrl;
+        }
+        
+        if ($forceLogout) {
+            $queryParams['forceLogout'] = 'true';
+        }
+        
+        $signinUrl .= '?' . http_build_query($queryParams);
+        
+        return $signinUrl;
+    }
+
+    /**
+     * Get the callback URL
+     * 
+     * @return string The callback URL
+     */
+    function getRedirectUrl(): string {
+        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+        $host = $_SERVER['HTTP_HOST'];
+        $uri = $_SERVER['REQUEST_URI'];
+        return $protocol . "://" . $host . $uri;
+    }
 
 
     /* Public Methods *********************************************************/
@@ -45,10 +90,7 @@ class AuthExternalHooks extends BaseHooks
             "hookedClassInstance" => $args['hookedClassInstance'],
             "propertyName" => "model"
         ));     
-        $fields = $this->execute_private_method(array(
-            "hookedClassInstance" => $model,
-            "methodName" => "get_db_fields"
-        ));
+        $fields = $model->get_db_fields();
         $div = new BaseStyleComponent("div", array(
             "css" => "authExternalUnibe my-4",
             "children" => array(
@@ -59,12 +101,18 @@ class AuthExternalHooks extends BaseHooks
                 new BaseStyleComponent("button", array(
                     "css" => "authExternalUnibeButton  w-100",
                     "label" => "Mit UniBE Campus-Konto anmelden",
-                    "url" => "https://auth.unibe.ch",
+                    "url" => $this->redirectToAuth(AUTH_EXTERNAL_UNIBE, $this->getRedirectUrl()),
                     "type" => "danger"
                 ))
             )
         ));
         $div->output_content();
+    }
+
+    public function login($args)
+    {  
+        $s = '';
+        return;
     }
 
     /**
