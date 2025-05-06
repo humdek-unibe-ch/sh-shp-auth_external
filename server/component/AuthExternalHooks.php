@@ -128,12 +128,7 @@ class AuthExternalHooks extends BaseHooks
             try {
                 $token = $_GET['token'];
                 $authService = new UnibeAuthService($this->db, $this->login);
-                // $publicKey = $authService->fetchPublicKey(AUTH_EXTERNAL_UNIBE);
-                $publicKey = "-----BEGIN PUBLIC KEY-----
-MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE267BC4Xq9C4DJw1vxTTqnIz+dvvZ
-DzH8vy/X2VcsaL7C8aCTVHtt6U8MJtitFGoiLeaQQEDivB1NEBTVem/KoQ==
------END PUBLIC KEY-----
-";
+                $publicKey = $authService->fetchPublicKey(AUTH_EXTERNAL_UNIBE);
                 $decodedToken = $authService->verifyToken($token, $publicKey);
 
                 // Extract user data from the token

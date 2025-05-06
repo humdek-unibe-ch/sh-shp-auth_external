@@ -6,4 +6,4 @@
 
 <?php
 /* External Auth URLs */
-define('AUTH_EXTERNAL_UNIBE', 'http://localhost:4030');
+define('AUTH_EXTERNAL_UNIBE', 'https://selfhelp.philhum.unibe.ch');
