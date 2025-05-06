@@ -6,6 +6,8 @@
 <?php
 require_once __DIR__ . "/../../../../component/BaseHooks.php";
 require_once __DIR__ . "/../../../../component/style/BaseStyleComponent.php";
+require_once __DIR__ . "/../../../../component/style/Login/LoginModel.php";
+require_once __DIR__ . "/../service/UnibeAuthService.php";
 
 /**
  * The class to define the hooks for the plugin.
@@ -35,7 +37,7 @@ class AuthExternalHooks extends BaseHooks
 
     /* Private Methods *********************************************************/
 
-        /**
+    /**
      * Redirect to smx-auth-backend for authentication
      * 
      * @param string $authBackendUrl The base URL of the smx-auth-backend service
@@ -45,27 +47,27 @@ class AuthExternalHooks extends BaseHooks
      * @return string The URL to redirect to
      */
     function redirectToAuth(
-        string $authBackendUrl, 
-        string $redirectUrl, 
-        string $callbackUrl = null, 
+        string $authBackendUrl,
+        string $redirectUrl,
+        string $callbackUrl = null,
         bool $forceLogout = false
     ): string {
         $signinUrl = $authBackendUrl . '/signin';
-        
+
         $queryParams = [
             'redirectUrl' => $redirectUrl
         ];
-        
+
         if ($callbackUrl) {
             $queryParams['callbackUrl'] = $callbackUrl;
         }
-        
+
         if ($forceLogout) {
             $queryParams['forceLogout'] = 'true';
         }
-        
+
         $signinUrl .= '?' . http_build_query($queryParams);
-        
+
         return $signinUrl;
     }
 
@@ -74,22 +76,33 @@ class AuthExternalHooks extends BaseHooks
      * 
      * @return string The callback URL
      */
-    function getRedirectUrl(): string {
+    private function getRedirectUrl(): string
+    {
         $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
         $host = $_SERVER['HTTP_HOST'];
         $uri = $_SERVER['REQUEST_URI'];
         return $protocol . "://" . $host . $uri;
     }
 
+    private function getLoginModel($args): LoginModel
+    {
+        return $this->get_private_property(array(
+            "hookedClassInstance" => $args['hookedClassInstance'],
+            "propertyName" => "model"
+        ));
+    }
+
 
     /* Public Methods *********************************************************/
 
+    /**
+     * Output the external auth button
+     * 
+     * @param array $args The arguments
+     */
     public function output_external_auth($args)
-    {  
-        $model = $this->get_private_property(array(
-            "hookedClassInstance" => $args['hookedClassInstance'],
-            "propertyName" => "model"
-        ));     
+    {
+        $model = $this->getLoginModel($args);
         $fields = $model->get_db_fields();
         $div = new BaseStyleComponent("div", array(
             "css" => "authExternalUnibe my-4",
@@ -110,9 +123,37 @@ class AuthExternalHooks extends BaseHooks
     }
 
     public function login($args)
-    {  
-        $s = '';
-        return;
+    {
+        if (isset($_GET['token'])) {
+            try {
+                $token = $_GET['token'];
+                $authService = new UnibeAuthService($this->db, $this->login);
+                // $publicKey = $authService->fetchPublicKey(AUTH_EXTERNAL_UNIBE);
+                $publicKey = "-----BEGIN PUBLIC KEY-----
+MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE267BC4Xq9C4DJw1vxTTqnIz+dvvZ
+DzH8vy/X2VcsaL7C8aCTVHtt6U8MJtitFGoiLeaQQEDivB1NEBTVem/KoQ==
+-----END PUBLIC KEY-----
+";
+                $decodedToken = $authService->verifyToken($token, $publicKey);
+
+                // Extract user data from the token
+                $email = $decodedToken->email;
+                if ($authService->login($email)) {
+                    $model = $this->getLoginModel($args);
+                    header('Location: ' . $model->get_target_url());
+                } else {
+                    throw new Exception("Login failed");
+                }
+            } catch (Exception $e) {
+                $this->set_private_property(array(
+                    "hookedClassInstance" => $args['hookedClassInstance'],
+                    "propertyName" => "failed",
+                    "propertyNewValue" => true
+                ));
+            }
+        } else {
+            return $this->execute_private_method($args);
+        }
     }
 
     /**
