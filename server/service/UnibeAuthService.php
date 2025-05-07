@@ -101,7 +101,7 @@ class UnibeAuthService
      */
     public function login(string $email): bool
     {
-        $sql = 'SELECT *, u.`name` AS user_name
+        $sql = 'SELECT u.id AS id, u.id_genders AS id_genders, u.`name` AS user_name, u.id_languages AS id_languages
                 FROM `users` u
                 INNER JOIN userStatus us ON (us.id = u.id_status)
                 AND us.`name` = "active" AND blocked <> 1 AND u.email = :email';

@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Bug Fixes
 
 - Properly show the user name in the profile once logged in with external auth
+- Properly update the user data once logged in with external auth
 
 ## [v1.0.0] - 2025-05-07
 
