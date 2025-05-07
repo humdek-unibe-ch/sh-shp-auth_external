@@ -122,6 +122,11 @@ class AuthExternalHooks extends BaseHooks
         $div->output_content();
     }
 
+    /**
+     * Login
+     * 
+     * @param array $args The arguments
+     */
     public function login($args)
     {
         if (isset($_GET['token'])) {
