@@ -103,17 +103,16 @@ class AuthExternalHooks extends BaseHooks
     public function output_external_auth($args)
     {
         $model = $this->getLoginModel($args);
-        $fields = $model->get_db_fields();
         $div = new BaseStyleComponent("div", array(
             "css" => "authExternalUnibe my-4",
             "children" => array(
                 new BaseStyleComponent("markdown", array(
                     "css" => "authExternalUnibeText text-center text-muted",
-                    "text_md" => "Oder mit Uni Bern Konto anmelden"
+                    "text_md" => $model->get_db_field('label_auth_external_unibe')
                 )),
                 new BaseStyleComponent("button", array(
                     "css" => "authExternalUnibeButton  w-100",
-                    "label" => "Mit UniBE Campus-Konto anmelden",
+                    "label" => $model->get_db_field('label_auth_external_unibe_button'),
                     "url" => $this->redirectToAuth(AUTH_EXTERNAL_UNIBE, $this->getRedirectUrl()),
                     "type" => "danger"
                 ))
