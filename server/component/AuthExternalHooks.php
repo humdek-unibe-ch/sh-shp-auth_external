@@ -6,7 +6,7 @@
 <?php
 require_once __DIR__ . "/../../../../component/BaseHooks.php";
 require_once __DIR__ . "/../../../../component/style/BaseStyleComponent.php";
-require_once __DIR__ . "/../../../../component/style/Login/LoginModel.php";
+require_once __DIR__ . "/../../../../component/style/login/LoginModel.php";
 require_once __DIR__ . "/../service/UnibeAuthService.php";
 
 /**
